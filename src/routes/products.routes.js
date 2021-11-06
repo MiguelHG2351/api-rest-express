@@ -14,7 +14,7 @@ router.get('/filter', (req, res) => {
     res.send(':D')
 })
 
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
     const { id } = req.params
 
     if(id === '999') {
@@ -22,13 +22,17 @@ router.get('/:id', (req, res) => {
             message: 'Product not found'
         })
     }
-    const product = service.get(id)
-
-    
-    res.json(product)
+    try {
+        const product = service.get(id)
+        res.json(product)
+    } catch (error) {
+        res.status(500).json({
+            message: 'Error getting product'
+        })
+    }
 })
 
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
     const { id } = req.params
     const body = req.body
     
@@ -37,50 +41,75 @@ router.put('/:id', (req, res) => {
             message: 'Faltan parametros'
         })
     }
-    const product = service.update(id, body)
+    try {
+        const product = service.update(id, body)
+        res.status(202).json({
+            message: 'updated',
+            data: product,
+            id
+        })
+    } catch (error) {
+        res.status(500).json({
+            message: 'Error updating product'
+        })
+    }
 
-    res.json({
-        message: 'updated',
-        data: product,
-        id
-    })
 })
 
-router.patch('/:id', (req, res) => {
+router.patch('/:id', async (req, res) => {
     const { id } = req.params
     const  body = req.body
 
-    const product = service.updatePartial(id, body)
+    try {
+        const product = await service.updatePartial(id, body)
+        res.json({
+            message: 'updated',
+            data: product,
+            id
+        })
+    } catch (error) {
+        res.status(500).json({
+            message: 'Error updating product'
+        })
+    }
 
-    res.json({
-        message: 'updated',
-        data: product,
-        id
-    })
 })
 
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
     const { id } = req.params
-    const product = service.delete(id)
+    try {
+        const product = await service.delete(id)
+        res.status(202).json({
+            message: 'deleted',
+            data: product
+        })
+    } catch (error) {
+        res.status(500).json({
+            message: 'Error deleting product'
+        })
+    }
 
-    res.status(202).json({
-        message: 'deleted',
-        data: product
-    })
 })
 
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
     const { name, price, image } = req.body
-    const product = service.create({
-        name,
-        price,
-        image
-    })
+    try {
+        const product = await service.create({
+            name,
+            price,
+            image
+        })
+        res.status(201).json({
+            message: 'created',
+            data: product
+        })
+    } catch (error) {
+        res.status(500).json({
+            message: 'Error',
+            data: error
+        })
+    }
 
-    res.status(201).json({
-        message: 'created',
-        data: product
-    })
 })
 
 module.exports = router;

@@ -19,15 +19,20 @@ class ProductService {
     }
     
     create({ name, price, image }) {
-        const product = {
-            id: faker.datatype.uuid(),
-            name,
-            price,
-            image
-        }
-
-        this.products.push(product)
-        return product
+        return new Promise((resolve, reject) => {
+            if(!name || !price || !image) {
+                reject(new Error('Missing data'))
+            } else {
+                const product = {
+                    id: faker.datatype.uuid(),
+                    name,
+                    price,
+                    image
+                }
+                this.products.push(product)
+                resolve(product)
+            }
+        })
     }
 
     getAll() {
@@ -35,36 +40,58 @@ class ProductService {
     }
 
     get(id) {
-        return this.products.find(product => product.id === id)
+        return new Promise((resolve, reject) => {
+            const index =  this.products.findIndex(product => product.id === id)
+            if(index === -1) {
+                reject(new Error('Product not found'))
+            } else {
+                resolve(this.products[index])
+            }
+        })
     }
 
     update(id, data) {
         const index = this.products.findIndex(product => product.id === id)
+        return new Promise((resolve, reject) => {
+            if(index === -1) {
+                reject(new Error('Product not found'))
+            } else {
+                this.products[index] = {
+                    id: this.products[index].id,
+                    ...data
+                }
+                resolve(this.products[index])
+            }
+        })
 
-        this.products[index] = {
-            id: this.products[index].id,
-            ...data
-        }
 
-        return this.products[index]
     }
 
     updatePartial (id, data) {
         const index = this.products.findIndex(product => product.id === id)
-
-        this.products[index] = {
-            ...this.products[index],
-            ...data
-        }
-
-        return this.products[index]
+        return new Promise((resolve, reject) => {
+            if(index === -1) {
+                reject(new Error('Product not found'))
+            } else {
+                this.products[index] = {
+                    ...this.products[index],
+                    ...data
+                }
+                resolve(this.products[index])
+            }
+        })
     }
 
     delete(id) {
         const index = this.products.findIndex(product => product.id === id)
-        const product = this.products.splice(index, 1)
+        return new Promise((resolve, reject) => {
+            if(index === -1) {
+                reject(new Error('Product not found'))
+            }
+            const product = this.products.splice(index, 1)
+            resolve(product)
+        })
 
-        return product
     }
 }
 
