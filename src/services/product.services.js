@@ -1,4 +1,5 @@
 const faker = require('faker')
+const boom = require('@hapi/boom')
 
 class ProductService {
     constructor() {
@@ -13,7 +14,8 @@ class ProductService {
                 id: faker.datatype.uuid(),
                 name: faker.commerce.productName(),
                 price: faker.commerce.price() - 0,
-                image: faker.image.imageUrl()
+                image: faker.image.imageUrl(),
+                isBlocked: faker.datatype.boolean()
             })
         }
     }
@@ -21,13 +23,14 @@ class ProductService {
     create({ name, price, image }) {
         return new Promise((resolve, reject) => {
             if(!name || !price || !image) {
-                reject(new Error('Missing data'))
+                reject(boom.badRequest('Missing data'))
             } else {
                 const product = {
                     id: faker.datatype.uuid(),
                     name,
                     price,
-                    image
+                    image,
+                    isBlocked: faker.datatype.boolean()
                 }
                 this.products.push(product)
                 resolve(product)
@@ -36,14 +39,18 @@ class ProductService {
     }
 
     getAll() {
-        return this.products
+        return new Promise((resolve, reject) => {
+            resolve(this.products)
+        })
     }
 
     get(id) {
         return new Promise((resolve, reject) => {
             const index =  this.products.findIndex(product => product.id === id)
             if(index === -1) {
-                reject(new Error('Product not found'))
+                reject(boom.notFound('Product not found'))
+            } else if (this.products[index].isBlocked) {
+                reject(boom.conflict('Producto bloqueado'))
             } else {
                 resolve(this.products[index])
             }
@@ -54,10 +61,14 @@ class ProductService {
         const index = this.products.findIndex(product => product.id === id)
         return new Promise((resolve, reject) => {
             if(index === -1) {
-                reject(new Error('Product not found'))
-            } else {
+                reject(boom.notFound('Product not found'))
+            } else if(this.products[index].isBlocked) {
+                reject(boom.conflict('Producto bloqueado'))
+            }
+            else {
                 this.products[index] = {
                     id: this.products[index].id,
+                    isBlocked: this.products[index].isBlocked,
                     ...data
                 }
                 resolve(this.products[index])
@@ -72,7 +83,10 @@ class ProductService {
         return new Promise((resolve, reject) => {
             if(index === -1) {
                 reject(new Error('Product not found'))
-            } else {
+            } else if (this.products[index].isBlocked) {
+                reject(boom.conflict('Producto bloqueado'))
+            }
+            else {
                 this.products[index] = {
                     ...this.products[index],
                     ...data
@@ -86,7 +100,9 @@ class ProductService {
         const index = this.products.findIndex(product => product.id === id)
         return new Promise((resolve, reject) => {
             if(index === -1) {
-                reject(new Error('Product not found'))
+                reject(boom.notFound('Product not found'))
+            } else if(this.products[index].isBlocked) {
+                reject(boom.conflict('No puedes borrar esto'))
             }
             const product = this.products.splice(index, 1)
             resolve(product)

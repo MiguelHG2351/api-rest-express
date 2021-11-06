@@ -4,9 +4,13 @@ const ProductServices = require('../services/product.services')
 const router = Router();
 const service = new ProductServices();
 
-router.get('/', (req, res) => {
-    const products = service.getAll()
-    res.json(products)
+router.get('/', async (req, res, next) => {
+    try {
+        const products = await service.getAll()
+        res.status(200).json(products)
+    } catch (error) {
+        next(error)
+    }
 })
 
 // Los endpoint especificos tienen que ir antes de los dinámicos
@@ -14,7 +18,7 @@ router.get('/filter', (req, res) => {
     res.send(':D')
 })
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req, res, next) => {
     const { id } = req.params
 
     if(id === '999') {
@@ -23,20 +27,18 @@ router.get('/:id', async (req, res) => {
         })
     }
     try {
-        const product = service.get(id)
+        const product = await service.get(id)
         res.json(product)
     } catch (error) {
-        res.status(500).json({
-            message: 'Error getting product'
-        })
+        next(error)
     }
 })
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', async (req, res, next) => {
     const { id } = req.params
     const body = req.body
     
-    if(!body.image && !body.name && !body.price) {
+    if(!body.image || !body.name || !body.price) {
         res.status(400).json({
             message: 'Faltan parametros'
         })
@@ -49,14 +51,12 @@ router.put('/:id', async (req, res) => {
             id
         })
     } catch (error) {
-        res.status(500).json({
-            message: 'Error updating product'
-        })
+        next(error)
     }
 
 })
 
-router.patch('/:id', async (req, res) => {
+router.patch('/:id', async (req, res, next) => {
     const { id } = req.params
     const  body = req.body
 
@@ -68,14 +68,12 @@ router.patch('/:id', async (req, res) => {
             id
         })
     } catch (error) {
-        res.status(500).json({
-            message: 'Error updating product'
-        })
+        next(error)
     }
 
 })
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', async (req, res, next) => {
     const { id } = req.params
     try {
         const product = await service.delete(id)
@@ -84,14 +82,12 @@ router.delete('/:id', async (req, res) => {
             data: product
         })
     } catch (error) {
-        res.status(500).json({
-            message: 'Error deleting product'
-        })
+        next(error)
     }
 
 })
 
-router.post('/', async (req, res) => {
+router.post('/', async (req, res, next) => {
     const { name, price, image } = req.body
     try {
         const product = await service.create({
@@ -104,10 +100,7 @@ router.post('/', async (req, res) => {
             data: product
         })
     } catch (error) {
-        res.status(500).json({
-            message: 'Error',
-            data: error
-        })
+        next(error)
     }
 
 })
