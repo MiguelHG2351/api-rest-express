@@ -1,8 +1,14 @@
-const { Router } = require('express');
+const { Router } = require('express')
 const ProductServices = require('../services/product.services')
+const validationHandler = require('../middleware/validation.handler')
+const {
+    createProductSchema,
+    updateProductSchema,
+    getProductSchema,
+} = require('../schema/product.schema')
 
-const router = Router();
-const service = new ProductServices();
+const router = Router()
+const service = new ProductServices()
 
 router.get('/', async (req, res, next) => {
     try {
@@ -18,29 +24,32 @@ router.get('/filter', (req, res) => {
     res.send(':D')
 })
 
-router.get('/:id', async (req, res, next) => {
-    const { id } = req.params
+router.get('/:id',
+    validationHandler(getProductSchema, 'params'),
+    async (req, res, next) => {
+        const { id } = req.params
 
-    if(id === '999') {
-        return res.status(404).json({
-            message: 'Product not found'
-        })
+        if (id === '999') {
+            return res.status(404).json({
+                message: 'Product not found',
+            })
+        }
+        try {
+            const product = await service.get(id)
+            res.json(product)
+        } catch (error) {
+            next(error)
+        }
     }
-    try {
-        const product = await service.get(id)
-        res.json(product)
-    } catch (error) {
-        next(error)
-    }
-})
+)
 
 router.put('/:id', async (req, res, next) => {
     const { id } = req.params
     const body = req.body
-    
-    if(!body.image || !body.name || !body.price) {
+
+    if (!body.image || !body.name || !body.price) {
         res.status(400).json({
-            message: 'Faltan parametros'
+            message: 'Faltan parametros',
         })
     }
     try {
@@ -48,30 +57,32 @@ router.put('/:id', async (req, res, next) => {
         res.status(202).json({
             message: 'updated',
             data: product,
-            id
+            id,
         })
     } catch (error) {
         next(error)
     }
-
 })
 
-router.patch('/:id', async (req, res, next) => {
-    const { id } = req.params
-    const  body = req.body
+router.patch('/:id',
+    validationHandler(getProductSchema, 'params'),
+    validationHandler(updateProductSchema, 'body'),
+    async (req, res, next) => {
+        const { id } = req.params
+        const body = req.body
 
-    try {
-        const product = await service.updatePartial(id, body)
-        res.json({
-            message: 'updated',
-            data: product,
-            id
-        })
-    } catch (error) {
-        next(error)
+        try {
+            const product = await service.updatePartial(id, body)
+            res.json({
+                message: 'updated',
+                data: product,
+                id,
+            })
+        } catch (error) {
+            next(error)
+        }
     }
-
-})
+)
 
 router.delete('/:id', async (req, res, next) => {
     const { id } = req.params
@@ -79,30 +90,31 @@ router.delete('/:id', async (req, res, next) => {
         const product = await service.delete(id)
         res.status(202).json({
             message: 'deleted',
-            data: product
+            data: product,
         })
     } catch (error) {
         next(error)
     }
-
 })
 
-router.post('/', async (req, res, next) => {
-    const { name, price, image } = req.body
-    try {
-        const product = await service.create({
-            name,
-            price,
-            image
-        })
-        res.status(201).json({
-            message: 'created',
-            data: product
-        })
-    } catch (error) {
-        next(error)
+router.post('/',
+    validationHandler(createProductSchema, 'body'),
+    async (req, res, next) => {
+        const { name, price, image } = req.body
+        try {
+            const product = await service.create({
+                name,
+                price,
+                image,
+            })
+            res.status(201).json({
+                message: 'created',
+                data: product,
+            })
+        } catch (error) {
+            next(error)
+        }
     }
+)
 
-})
-
-module.exports = router;
+module.exports = router
