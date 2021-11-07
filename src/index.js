@@ -9,7 +9,7 @@ const port = process.env.PORT || 3000
 const whiteList = ['http://localhost:3000/', 'https://rest-api-express-platzi.herokuapp.com']
 const options = {
     origin: (origin, callback) => {
-        if(whiteList.includes(origin) !== -1) {
+        if(whiteList.includes(origin) !== -1 || !origin) {
             callback(null, true)
         } else {
             callback(new Error('Not allowed by CORS'))
