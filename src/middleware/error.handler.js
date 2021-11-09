@@ -10,6 +10,18 @@ function errorHandler(err, _, res, __) {
     })
 }
 
+function sequelizeErrorHandler(err, req, res, next) {
+    if(err.parent) {
+        const { fields, parent, output: { statusCode } } = err
+        return res.status(409).json({
+            statusCode,
+            message: parent.detail,
+            fields
+        })
+    }
+    next(err)
+}
+
 function boomErrorHandler(err, _, res, next) {
     if(err.isBoom) {
         const { output } = err
@@ -21,5 +33,6 @@ function boomErrorHandler(err, _, res, next) {
 module.exports = { 
     logErrors,
     errorHandler,
-    boomErrorHandler
+    boomErrorHandler,
+    sequelizeErrorHandler
 }

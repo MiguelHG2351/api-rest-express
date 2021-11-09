@@ -1,9 +1,14 @@
 const express = require('express')
 const cors = require('cors')
+const path = require('path')
 const app = express()
 
+if(process.env.NODE_ENV !== 'prod') {
+    require('dotenv').config({path: path.resolve(process.cwd(), '.env')})
+}
+
 const routesApi = require('./routes')
-const { logErrors, errorHandler, boomErrorHandler } = require('./middleware/error.handler')
+const { logErrors, errorHandler, boomErrorHandler, sequelizeErrorHandler } = require('./middleware/error.handler')
 
 const port = process.env.PORT || 3000
 const whiteList = ['http://localhost:3000/', 'https://rest-api-express-platzi.herokuapp.com']
@@ -21,6 +26,7 @@ app.use(cors(options))
 app.use(express.json())
 routesApi(app)
 app.use(logErrors)
+app.use(sequelizeErrorHandler)
 app.use(boomErrorHandler)
 app.use(errorHandler)
 
