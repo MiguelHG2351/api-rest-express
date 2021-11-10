@@ -20,21 +20,21 @@ services:
       - "5050:80"
   
   mysql:
-    image: mysql:5
+    image: mysql:latest
     environment:
-      MYSQL_USER: miguel
-      MYSQL_ROOT_PASSWORD: 1234root
-      MYSQL_DATABASE: my_store
-      MYSQL_PORT: 3306
+      MYSQL_DATABASE: 'db'
+      MYSQL_USER: 'root'
+      MYSQL_PASSWORD: 'password'
+      MYSQL_ROOT_PASSWORD: 'password'
     ports:
-      - "3306:3306"
+      - 3306:3306
     volumes:
       - ./mysql_data:/var/lib/mysql
   
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     environment:
-      MYSQL_ROOT_PASSWORD: mysql
+      MYSQL_ROOT_PASSWORD: admin123
       PMA_HOST: mysql
     ports:
       - "8080:80"
